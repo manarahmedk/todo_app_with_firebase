@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCzBjya66IrsktWkhcJfVY_Zbpjc_e7g3Y</string>
+	<key>GCM_SENDER_ID</key>
+	<string>393980898623</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.eraasoft.todoFirebase.RunnerTests</string>
+	<key>PROJECT_ID</key>
+	<string>todoapp-526f8</string>
+	<key>STORAGE_BUCKET</key>
+	<string>todoapp-526f8.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:393980898623:ios:f22719456e90f1b603f78a</string>
+</dict>
+</plist>
