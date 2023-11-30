@@ -75,13 +75,13 @@ class TaskBuilder extends StatelessWidget {
                   ),
                 ],
               ),
-              // if((taskModel?.image ?? '').isNotEmpty)
-              //   ...[
-              //     const SizedBox(
-              //       height: 12,
-              //     ),
-              //     Image.network(taskModel?.image ?? ""),
-              //   ],
+              if((taskModel?.image ?? '').isNotEmpty)
+                ...[
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Image.network(taskModel?.image ?? ""),
+                ],
               const SizedBox(
                 height: 8,
               ),

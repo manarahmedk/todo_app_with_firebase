@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -13,7 +11,6 @@ import '../../../model/statistics_madel.dart';
 import '../../../model/task_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../model/todo_fire.dart';
 import '../../data/local/shared_keys.dart';
 import '../../data/local/shared_prefernce.dart';
@@ -85,32 +82,7 @@ class ToDoCubit extends Cubit<ToDoStates> {
 
   void changeIndex(int index) {
     currentIndex = index;
-    //setData();
-  }
-
-  Future<void> getAllTasks() async {
-    //print(LocalData.get(key: SharedKeys.token));
-    emit(GetAllTasksLoadingState());
-    await DioHelper.get(
-      endPoint: EndPoints.tasks,
-      token: LocalData.get(
-        key: SharedKeys.token,
-      ),
-    ).then((value) {
-      print(value?.data);
-      todoModel = ToDoModel.fromJson(value?.data);
-      if ((todoModel?.data?.meta?.lastPage ?? 0) ==
-          (todoModel?.data?.meta?.currentPage ?? 0)) {
-        hasMoreTasks = false;
-      }
-      emit(GetAllTasksSuccessState());
-    }).catchError((error) {
-      print(error);
-      if (error is DioException) {
-        print(error.response?.data);
-      }
-      emit(GetAllTasksErrorState());
-    });
+    setData();
   }
 
   Future<void> fetchNewTasks() async {
@@ -145,92 +117,6 @@ class ToDoCubit extends Cubit<ToDoStates> {
     });
   }
 
-  Future<void> addNewTask() async {
-    emit(AddNewTaskLoadingState());
-    await DioHelper.post(
-      endPoint: EndPoints.tasks,
-      token: LocalData.get(
-        key: SharedKeys.token,
-      ),
-      formData: FormData.fromMap({
-        'title': titleController.text,
-        'description': detailsController.text,
-        'start_date': startDateController.text,
-        'end_date': endDateController.text,
-        if (image != null) 'image': await MultipartFile.fromFile(image!.path),
-        'status': statusValue,
-      }),
-    ).then((value) {
-      print(value?.data);
-      emit(AddNewTaskSuccessState());
-      getAllTasks();
-      image = null;
-    }).catchError((error) {
-      print(error);
-      if (error is DioException) {
-        print(error.response?.data);
-      }
-      emit(AddNewTaskErrorState());
-      throw error;
-    });
-    clearAllData();
-  }
-
-  Future<void> updateTask() async {
-    emit(UpdateTaskLoadingState());
-    await DioHelper.post(
-      endPoint:
-          "${EndPoints.tasks}/${todoModel?.data?.tasks?[currentIndex].id}",
-      token: LocalData.get(
-        key: SharedKeys.token,
-      ),
-      formData: FormData.fromMap({
-        '_method': 'PUT',
-        'title': editTitleController.text,
-        'description': editDetailsController.text,
-        'start_date': editStartDateController.text,
-        'end_date': editEndDateController.text,
-        if (image != null) 'image': await MultipartFile.fromFile(image!.path),
-        'status': statusValue,
-      }),
-    ).then((value) {
-      print(value?.data);
-      emit(UpdateTaskSuccessState());
-      getAllTasks();
-      image = null;
-    }).catchError((error) {
-      print(error);
-      if (error is DioException) {
-        print(error.response?.data);
-      }
-      emit(UpdateTaskErrorState());
-      throw error;
-    });
-    clearAllData();
-  }
-
-  Future<void> deleteTask() async {
-    emit(DeleteTaskLoadingState());
-    await DioHelper.delete(
-      endPoint:
-          "${EndPoints.tasks}/${todoModel?.data?.tasks?[currentIndex].id}",
-      token: LocalData.get(
-        key: SharedKeys.token,
-      ),
-    ).then((value) {
-      print(value?.data);
-      emit(DeleteTaskSuccessState());
-      getAllTasks();
-    }).catchError((error) {
-      print(error);
-      if (error is DioException) {
-        print(error.response?.data);
-      }
-      emit(DeleteTaskErrorState());
-      throw error;
-    });
-  }
-
   Future<void> showStatistics() async {
     //print(LocalData.get(key: SharedKeys.token));
     emit(GetStatisticsLoadingState());
@@ -256,17 +142,17 @@ class ToDoCubit extends Cubit<ToDoStates> {
     });
   }
 
-  // void setData() {
-  //   editTitleController.text =
-  //       todoModel?.data?.tasks?[currentIndex].title! ?? "";
-  //   editDetailsController.text =
-  //       todoModel?.data?.tasks?[currentIndex].description! ?? "";
-  //   editStartDateController.text =
-  //       todoModel?.data?.tasks?[currentIndex].startDate! ?? "";
-  //   editEndDateController.text =
-  //       todoModel?.data?.tasks?[currentIndex].endDate! ?? "";
-  //   statusValue = todoModel?.data?.tasks?[currentIndex].status! ?? "";
-  // }
+  void setData() {
+    editTitleController.text =
+        todoModel?.data?.tasks?[currentIndex].title! ?? "";
+    editDetailsController.text =
+        todoModel?.data?.tasks?[currentIndex].description! ?? "";
+    editStartDateController.text =
+        todoModel?.data?.tasks?[currentIndex].startDate! ?? "";
+    editEndDateController.text =
+        todoModel?.data?.tasks?[currentIndex].endDate! ?? "";
+    statusValue = todoModel?.data?.tasks?[currentIndex].status! ?? "";
+  }
 
   void clearAllData() {
     titleController.clear();
@@ -286,39 +172,37 @@ class ToDoCubit extends Cubit<ToDoStates> {
       Functions.showToast(message: "Choose an image");
       return;
     }
-    //emit(UploadImageSuccessState());
-    if (status.isGranted) {
-      print('granted');
-    } else {
-      print('not granted');
-    }
+    emit(UploadImageSuccessState());
   }
-  
 
   Future<void> addTaskFireStore() async {
     emit(AddNewTaskLoadingState());
-    String link ="";
-    await uploadImage(image: image!, onSuccess: (photoLink){
-      link=photoLink;
-    });
-    await FirebaseFirestore.instance.collection(FirebaseKeys.tasks).add(
-      {
-        'title': titleController.text,
-        'description': detailsController.text,
-        'start_date': startDateController.text,
-        'end_date': endDateController.text,
-        //if (image != null) 'image': await MultipartFile.fromFile(image!.path),
-        'status': statusValue,
-        'user_id': LocalData.get(key: SharedKeys.uid),
-      },
-    ).then((value) {
-        print(value);
-        emit(AddNewTaskSuccessState());
-        getAllTasksFromFireStore();
+    TodoFire todo = TodoFire(
+      title: titleController.text,
+      description: detailsController.text,
+      startDate: startDateController.text,
+      endDate: endDateController.text,
+      status: statusValue,
+      userId: LocalData.get(key: SharedKeys.uid),
+    );
+    if (image != null) {
+      await uploadImage(
+          image: image!,
+          onSuccess: (photoLink) {
+            todo.image = photoLink;
+          });
+    }
+    await FirebaseFirestore.instance
+        .collection(FirebaseKeys.tasks)
+        .add(todo.toJson())
+        .then((value) {
+      print(value);
+      emit(AddNewTaskSuccessState());
+      getAllTasksFromFireStore();
     }).catchError((error) {
-        print(error);
-        emit(AddNewTaskErrorState());
-        throw error;
+      print(error);
+      emit(AddNewTaskErrorState());
+      throw error;
     });
   }
 
@@ -326,19 +210,20 @@ class ToDoCubit extends Cubit<ToDoStates> {
 
   Future<void> getAllTasksFromFireStore() async {
     emit(GetAllTasksLoadingState());
-     FirebaseFirestore.instance
+    FirebaseFirestore.instance
         .collection(FirebaseKeys.tasks)
         .where('user_id', isEqualTo: LocalData.get(key: SharedKeys.uid))
-        .snapshots().listen((value) {
-       tasksFire.clear();
-       for(var i in value.docs){
-         tasksFire.add(TodoFire.fromJson(i.data(), id: i.reference));
-       }
-       emit(GetAllTasksSuccessState());
-     },onError: (error) {
-        print(error);
-        emit(GetAllTasksErrorState());
-        throw error;
+        .snapshots()
+        .listen((value) {
+      tasksFire.clear();
+      for (var i in value.docs) {
+        tasksFire.add(TodoFire.fromJson(i.data(), id: i.reference));
+      }
+      emit(GetAllTasksSuccessState());
+    }, onError: (error) {
+      print(error);
+      emit(GetAllTasksErrorState());
+      throw error;
     });
   }
 
@@ -347,10 +232,11 @@ class ToDoCubit extends Cubit<ToDoStates> {
   Future<void> getTaskFromFireStore() async {
     emit(GetTaskLoadingState());
     await tasksFire[currentIndex].id?.get().then((value) {
-      currentTask =TodoFire.fromJson(value.data() as Map<String,dynamic>,id: value.reference);
+      currentTask = TodoFire.fromJson(value.data() as Map<String, dynamic>,
+          id: value.reference);
       setDataFromFirebaseToControllers();
       emit(GetTaskSuccessState());
-    }).catchError((error){
+    }).catchError((error) {
       print(error);
       emit(GetTaskErrorState());
       throw error;
@@ -364,7 +250,8 @@ class ToDoCubit extends Cubit<ToDoStates> {
     editEndDateController.text = currentTask?.endDate! ?? "";
     statusValue = currentTask?.status! ?? "";
   }
-  void setDataFromControllersToFireStore(){
+
+  void setDataFromControllersToFireStore() {
     currentTask?.title = editTitleController.text;
     currentTask?.description = editDetailsController.text;
     currentTask?.startDate = editStartDateController.text;
@@ -375,10 +262,10 @@ class ToDoCubit extends Cubit<ToDoStates> {
   Future<void> updateTaskFire() async {
     emit(UpdateTaskLoadingState());
     setDataFromControllersToFireStore();
-    await currentTask?.id?.update(currentTask?.toJson()??{}).then((value) {
+    await currentTask?.id?.update(currentTask?.toJson() ?? {}).then((value) {
       emit(UpdateTaskSuccessState());
       getAllTasksFromFireStore();
-    }).catchError((error){
+    }).catchError((error) {
       print(error);
       emit(UpdateTaskSuccessState());
       throw error;
@@ -390,22 +277,26 @@ class ToDoCubit extends Cubit<ToDoStates> {
     await currentTask?.id?.delete().then((value) {
       emit(DeleteTaskSuccessState());
       getAllTasksFromFireStore();
-    }).catchError((error){
+    }).catchError((error) {
       print(error);
       emit(DeleteTaskErrorState());
       throw error;
     });
   }
 
-  Future<void> uploadImage({required XFile image,required Function(String) onSuccess}) async {
+  Future<void> uploadImage(
+      {required XFile image, required Function(String) onSuccess}) async {
     emit(UploadImageLoadingState());
-    await FirebaseStorage.instance.ref().child('tasks/${image.name}').putFile(File(image.path)).then((photo) async {
-     await photo.ref.getDownloadURL().then((value) {
-      print(value);
-      onSuccess(value);
-      emit(UploadImageSuccessState());
-     });
+    await FirebaseStorage.instance
+        .ref()
+        .child('tasks/${image.name}')
+        .putFile(File(image.path))
+        .then((photo) async {
+      await photo.ref.getDownloadURL().then((value) {
+        print(value);
+        onSuccess(value);
+        emit(UploadImageSuccessState());
+      });
     });
   }
-
 }

@@ -153,9 +153,9 @@ class EditTaskScreen extends StatelessWidget {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if ((cubit.todoModel?.data?.tasks?[cubit.currentIndex].image ?? "").isNotEmpty)
-                                    Image.network(cubit.todoModel?.data?.tasks?[cubit.currentIndex].image ?? ''),
-                                  if ((cubit.todoModel?.data?.tasks?[cubit.currentIndex].image ?? "").isEmpty)
+                                  if ((cubit.tasksFire[cubit.currentIndex].image ?? "").isNotEmpty)
+                                    Image.network(cubit.tasksFire[cubit.currentIndex].image ?? ''),
+                                  if ((cubit.tasksFire[cubit.currentIndex].image ?? "").isEmpty)
                                     ...[
                                     const Icon(
                                       Icons.image,
@@ -219,7 +219,7 @@ class EditTaskScreen extends StatelessWidget {
                             onSaved: (value) {
                               cubit.statusValue = value.toString();
                             },
-                            value: cubit.statusValue,
+                            value: cubit.tasksFire[cubit.currentIndex].status,
                             buttonStyleData: const ButtonStyleData(
                               padding: EdgeInsets.only(right: 8),
                             ),
